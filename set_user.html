@@ -1,0 +1,55 @@
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<style>
+html {
+   overflow-y:hidden;
+}
+
+html, body, #container {
+    height: 100%;
+  }
+  #container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  #dialog-body {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+ input {
+   width:15px;
+ }
+</style>
+<?!= include('css'); ?>
+
+  <script>
+  function saveData(form){
+    var formData = new FormData(form);
+    var data_arr=[];
+  // iterate through entries...
+  for (var pair of formData.entries()) {
+    data_arr.push(pair[1]);
+  }
+    google.script.run.withSuccessHandler(success).save_user_data(data_arr);
+    }
+   function success(){
+     setTimeout(function(){google.script.host.close();}, 30);
+     }
+  </script>
+  <style>td,th{border:1px solid white;}</style>
+  <form name="myForm"><table>
+  <tr><td><div class='dd_title'>Email</div></td><td><input type="text" name="email" placeholder="abc@def.com" /></td><tr></tr>
+  <tr><td><div class='dd_title'>Şifre</div></div></td><td><input type="password" name="sifre" placeholder="****" /></td><tr></tr>
+  <tr><td><div class='dd_title'>Kullanıcı adı</div></div></td><td><input type="text" name="kullanici adi" placeholder="kullanıcıadı" /></td><tr></tr>
+  <tr><td><div class="dd_title">Resimler</div></td><td><div style="float:right;"><select name="resim_tercihi">
+    <option disabled selected>--Hangi güncel resimlerini istediğinizi seçin--</optioon>
+    <option value='small'>Sadece küçükler</option>
+    <option value = 'big'>Sadece büyükler</option>
+    <option value='both'>Büyükler ve küçükler</option>
+    <option value = 'none'>Hiçbiri</option>
+    <></select></div></td><tr></tr>
+  </table></form>
+
+ 

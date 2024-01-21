@@ -1,0 +1,36 @@
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<style>
+html {
+   overflow-y:hidden;
+   overflow-x:hidden;
+}
+
+html, body, #container {
+    height: 100%;
+    width: 100%;
+  }
+  #container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  #dialog-body {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  table {
+    width: 400px;
+  }
+
+</style>
+
+<?!= include('css'); ?>
+  <table>
+  <tr><td><div class='dd_title'>Kullanıcı adı:</div></td><td><div class='dd_title'><?!= data[2] ?></div></td><tr></tr>
+  <tr><td><div class='dd_title'>Şifre:</div></td><td><div class='dd_title'><?!= data[1] ?></div></td><tr></tr>
+  <tr><td><div class='dd_title'>Email:</div></td><td><div class='dd_title'><?!= data[0] ?></div></td><tr></tr>
+  <tr><td><div class='dd_title'>Güncel resimleri seçeneği:</div></td><td><div class='dd_title'><?!= data[3] ?></div></td><tr></tr>
+  <tr></tr>
+  </table>

@@ -1,0 +1,203 @@
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<?!= include('css'); ?>
+<script>
+
+function start()
+{
+    var cancel_button = document.getElementsByClassName('cancel')[0];
+    if(cancel_button.innerHTML.toLowerCase() == 'kapat'){
+      cancel_button.innerHTML = 'İptal';
+      cancel_button.onclick = cancel;
+      document.getElementsByClassName('submit')[0].innerHTML  = 'BAŞLADI';
+      var div = document.getElementById('output');
+      var date_string = new Date().toLocaleString('tr-TR');
+      div.innerHTML = div.innerHTML +date_string+' Sayfalar inmeye başladı. <br>';
+    }
+    google.script.run.withSuccessHandler(success).withFailureHandler(failure).get_nurti_page();
+}
+
+function writeResults(results)
+{
+  console.log('results in write results : ', results)
+   //page | last saved post date | number of posts	| number of comments | time elapsed in sec | done
+   //num downloded images | remaining images
+  var div = document.getElementById('output');
+  var date_string = new Date().toLocaleString('tr-TR');
+  var results_arr=[];
+  if( typeof results.message === 'string' && !results.message.includes('|')){
+    console.log('writing error');
+    console.log(results.message)
+    var div = document.getElementById('output');
+    div.innerHTML = div.innerHTML + results.message +'<br>';
+  }
+  if(typeof results.message === 'string' && results.message.includes('|')){
+    console.log('writing results');
+    console.log(results.message);
+    var results_arr = results.message.split('|');
+  }
+  else if(typeof results === 'string'){
+    results_arr = results.split('|');
+  }
+  if(results_arr[0]=='feed' || results_arr[0]=='people'){
+    var num_img = results_arr[1] || 'N/A';
+    var num_rem = results_arr[2] || 'N/A';
+    var num_sec = results_arr[3] || 'N/A';
+    div.innerHTML = div.innerHTML + date_string +' '+ num_img +' resim '+num_sec+' saniyede indirildi, '+num_rem +' resim kaldı.<br>';
+    if(results_arr[4]==='feed done')
+      div.innerHTML = div.innerHTML +'Güncel resimlerinin indirilmesi bitti.<br>';
+    else if(results_arr[4]==='people done')
+      div.innerHTML = div.innerHTML + 'Profil resimlerinin indirilmesi bitti. Şimdi güncel resimleri indirilecek.<br>';
+  }
+  else if(results_arr.length >4){
+    var page = results_arr[0] || 'N/A';
+    var last_date = results_arr[1] || 'N/A';
+    var num_posts = results_arr[2] || 'N/A';
+    var num_coms = results_arr[3] || 'N/A';
+    var num_sec = results_arr[4] || 'N/A';
+    div.innerHTML = div.innerHTML +date_string+' Son sayfası '+page
+    +', son giriş tarihi '+last_date+'  olan '
+    +num_posts +' güncel ve '
+    +num_coms +' yorum '
+    +num_sec + ' saniyede indirildi.'
+    +'<br>';
+    if(results_arr[5]==='done'){
+      div.innerHTML = div.innerHTML +'Sayfaların indirilmesi bitti. Şimdi resimler indirilecek.'+'<br>';
+    }
+    
+  }
+  
+}
+function success(args)
+{
+
+   if(cancelPressed)
+   {
+     google.script.run.withSuccessHandler(gen_success).finishOnCancel();
+   }
+   else
+   {
+     console.log('args in success else ', args);
+     writeResults(args);
+     cont_w_images('people');
+
+   }
+
+}
+function cont_w_images(feed_or_people){
+  if(cancelPressed)
+   {
+     google.script.run.withSuccessHandler(gen_success).finishOnCancel();
+   }
+  else
+    google.script.run.withSuccessHandler(img_success).withFailureHandler(img_failure).save_images(feed_or_people);
+}
+function img_failure(args){
+  writeResults(args);
+  var results=[];
+  if(cancelPressed)
+   {
+     google.script.run.withSuccessHandler(gen_success).finishOnCancel();
+   }
+  
+  else if(typeof args == 'string' && args.includes('|'))
+  {
+    results= args.split('|');
+    cont_w_images(results[0]);
+  }
+  else if(typeof args.message== 'string' && args.message.includes('|')){
+    results = args.message.split('|');
+    cont_w_images(results[0]);
+  }
+  else
+  {
+    var date_string = new Date().toLocaleString('tr-TR');
+    writeResults({message:date_string+' img_failure fonksiyonunda bir hata oluştu, tekrar deneyin ya da adminle iletişime geçin.'});
+    gen_success();
+  }
+}
+function img_success(args){
+  console.log('args in img_success: ', args);
+  writeResults(args);
+  var results=[];
+  if(cancelPressed)
+  {
+    google.script.run.withSuccessHandler(gen_success).finishOnCancel();
+  }
+  
+  else if(typeof args === 'string')
+  {
+    results= args.split('|');
+    if(results[4]==='people done')
+      cont_w_images('feed');
+    else if(results[4]==='feed done')
+      gen_success();
+  }
+  else{
+    var date_string = new Date().toLocaleString('tr-TR');
+    writeResults({message:date_string+ ' img_success fonksiyonunda bir hata oluştu, tekrar deneyin ya da adminle iletişime geçin.'});
+    gen_success();
+  }
+}
+
+function failure(args)
+{
+   if(cancelPressed)
+   {
+     google.script.run.withSuccessHandler(gen_success).finishOnCancel();
+   }
+   else
+   {
+     writeResults(args);
+     start();
+   }
+}
+function gen_success()
+{
+   var buttons = document.getElementsByTagName('button');
+   var submit_buttons = document.getElementsByClassName('submit');
+   console.log(submit_buttons);
+   submit_buttons[0].remove();
+   buttons[0].textContent = 'Kapat';
+   buttons[0].onclick = function(){google.script.host.close();};
+}
+
+
+function cancel()
+{
+  cancelPressed = true;
+  var div = document.getElementById('output');
+  var date_string = new Date().toLocaleString('tr-TR');
+  div.innerHTML += date_string+' Sayfa indirme iptal edildi. Lütfen son işlemin bitmesini bekleyip KAPAT düğmesine basın <br><br>';
+  var submit_buttons = document.getElementsByClassName('submit');
+  submit_buttons[0].textContent = 'Temİzle';
+  submit_buttons[0].onclick = function(){google.script.run.withSuccessHandler(gen_success).finishOnCancel();};
+}
+var cancelPressed = false;
+</script>
+
+<style>
+  html, body, #container {
+    height: 100%;
+  }
+  #container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  #dialog-body {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  #buttons {
+    display: flex;
+    justify-content: flex-end;
+  }
+  span.label {
+    margin-left: 10px;
+  }
+</style>
+
+
+<div id="output">
+</div>
